@@ -37,9 +37,12 @@ def products():
     host, dbname, uid, password = request.headers['credentials'].split('#')
     db_products = pool('product.product', host, dbname, int(uid), password)
     data = []
-    for product in db_products('read', db_products('search', [
-        ('name', 'ilike', request.args.get('q', ''))
-    ]), ['name', 'default_code']):
+    qs = []
+    if request.args.get('q', ''):
+        qs = [('name', 'ilike', request.args.get('q', ''))]
+    elif request.args.get('code', ''):
+        qs = [('default_code', '=', request.args.get('code', ''))]
+    for product in db_products('read', db_products('search', qs), ['name', 'default_code']):
         data.append({
             'id': product['id'],
             'name': product['name'],
